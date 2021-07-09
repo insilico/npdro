@@ -81,7 +81,7 @@ diffRegression <- function(design.matrix.df, regression.type = "binomial", fast.
 #' @param dataset m x p matrix of m instances and p attributes, May also include outcome vector but then outcome should be name. Include attr names as colnames.
 #' @param regression.type (\code{"lm"} or \code{"binomial"})
 #' @param attr.diff.type diff type for attributes (\code{"numeric-abs"} or \code{"numeric-sqr"} for numeric, \code{"allele-sharing"} or \code{"match-mismatch"} for SNP). Phenotype diff uses same numeric diff as attr.diff.type when lm regression. For glm-binomial, phenotype diff is \code{"match-mismatch"} For correlation data (e.g., rs-fMRI), use \code{"correlation-data"}; diffs between two variables (e.g., ROIs) are taken across all their pairs of correlations and the attribute importances are given for the overall variable (e.g,. brain ROI), not individual pairs.
-#' @param nbd.method neighborhood method [\code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)]. Used by nearestNeighbors().
+#' @param nbd.method neighborhood method \code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k). Used by nearestNeighbors().
 #' @param nbd.metric used in npdrDistances for distance matrix between instances, default: \code{"manhattan"} (numeric). Used by nearestNeighbors().
 #' @param knn number of constant nearest hits/misses for \code{"relieff"} (fixed-k). Used by nearestNeighbors().
 #' The default knn=0 means use the expected SURF theoretical k with msurf.sd.frac (.5 by default)
@@ -103,7 +103,7 @@ diffRegression <- function(design.matrix.df, regression.type = "binomial", fast.
 #' @param unique.dof use unique neighbor pairs for degrees of freedom. FALSE lets R stats determine regression degrees of freedom
 #' @param verbose logical, whether to print out intermediate steps
 #' @param fast.dist whether or not distance is computed by faster algorithm in wordspace, default as F
-#' 
+#'
 #' @return npdr.stats.df: npdr fdr-corrected p-value for each attribute ($pval.adj [1]), raw p-value ($pval.attr [2]), and regression coefficient (beta.attr [3])
 #'
 #' @importFrom utils capture.output combn write.table
@@ -113,23 +113,23 @@ diffRegression <- function(design.matrix.df, regression.type = "binomial", fast.
 #'
 #' @examples
 #' # Data interface options.
-#' # Specify name ("qtrait") of outcome and dataset, 
+#' # Specify name ("qtrait") of outcome and dataset,
 #' # which is a data frame including the outcome column.
-#' # ReliefF fixed-k neighborhood, uses surf theoretical default (with msurf.sd.frac=.5) 
+#' # ReliefF fixed-k neighborhood, uses surf theoretical default (with msurf.sd.frac=.5)
 #' # if you do not specify k or let k=0.
 #' npdr.results.df <- npdr(
-#'   "qtrait", qtrait.3sets$train, 
-#'   regression.type = "lm", nbd.method = "relieff", nbd.metric = "manhattan", 
-#'   attr.diff.type = "manhattan", covar.diff.type = "manhattan", 
+#'   "qtrait", qtrait.3sets$train,
+#'   regression.type = "lm", nbd.method = "relieff", nbd.metric = "manhattan",
+#'   attr.diff.type = "manhattan", covar.diff.type = "manhattan",
 #'   msurf.sd.frac = 0.5, padj.method = "bonferroni")
 #'
-#' # Specify column index (101) of outcome and dataset, 
+#' # Specify column index (101) of outcome and dataset,
 #' # which is a data frame including the outcome column.
 #' # ReliefF fixed-k nbd, choose a k (knn = 10). Or choose msurf.sd.frac
 #' npdr.results.df <- npdr(
-#'   101, case.control.3sets$train, 
-#'   regression.type = "binomial", nbd.method = "relieff", nbd.metric = "manhattan", 
-#'   attr.diff.type = "manhattan", covar.diff.type = "manhattan", 
+#'   101, case.control.3sets$train,
+#'   regression.type = "binomial", nbd.method = "relieff", nbd.metric = "manhattan",
+#'   attr.diff.type = "manhattan", covar.diff.type = "manhattan",
 #'   knn = 10, padj.method = "bonferroni")
 #'
 #' # if outcome vector (pheno.vec) is separate from attribute matrix
@@ -142,7 +142,7 @@ diffRegression <- function(design.matrix.df, regression.type = "binomial", fast.
 #'  msurf.sd.frac = 0.5, padj.method = "bonferroni"
 #'  )
 #' # attributes with npdr adjusted p-value less than .05
-#' npdr.positives <- row.names(npdr.results.df[npdr.results.df$pva.adj < .05, ]) 
+#' npdr.positives <- row.names(npdr.results.df[npdr.results.df$pva.adj < .05, ])
 #' @export
 #'
 npdr <- function(outcome, dataset,
@@ -211,8 +211,8 @@ npdr <- function(outcome, dataset,
       fast.dist = fast.dist,
       dopar.nn = dopar.nn
     )
-  } else { 
-    # allow neighborhoods to be imbalanced, 
+  } else {
+    # allow neighborhoods to be imbalanced,
     # often nearest hits are closer than misses,
     # which could dilute the effect of misses
     neighbor.pairs.idx <- nearestNeighbors(attr.mat,
