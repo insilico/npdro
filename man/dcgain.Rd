@@ -37,8 +37,8 @@ scale-free structure}
 }
 }
 \seealso{
-\code{\link{dmgain}} for differential modularity.
-\code{\link{dcgainInbix}} for inbix differential coexpression GAIN.
+\code{dmgain} for differential modularity.
+\code{dcgainInbix} for inbix differential coexpression GAIN.
 
 Other GAIN functions: 
 \code{\link{dmgain}()},

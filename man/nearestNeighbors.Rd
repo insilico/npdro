@@ -20,7 +20,7 @@ nearestNeighbors(
 \arguments{
 \item{attr.mat}{m x p matrix of m instances and p attributes}
 
-\item{nbd.method}{neighborhood method \link{\code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)}}
+\item{nbd.method}{neighborhood method \code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)}
 
 \item{nbd.metric}{used in npdrDistances for distance matrix between instances, default: \code{"manhattan"} (numeric)}
 
@@ -49,28 +49,28 @@ Used for npdr (no hits or misses specified in neighbor function).
 \examples{
 # multisurf neighborhood with sigma/2 (sd.frac=0.5) "dead-band" boundary
 neighbor.pairs.idx <- nearestNeighbors(
-  predictors.mat, 
-  nbd.method = "multisurf", 
-  nbd.metric = "manhattan", 
+  predictors.mat,
+  nbd.method = "multisurf",
+  nbd.metric = "manhattan",
   sd.frac = 0.5
 )
 head(neighbor.pairs.idx)
 
-# reliefF (fixed-k) neighborhood using default `k` equal to 
+# reliefF (fixed-k) neighborhood using default `k` equal to
 # theoretical surf expected value.
 # One can change the theoretical value by changing sd.frac (default 0.5).
 neighbor.pairs.idx <- nearestNeighbors(
-  predictors.mat, 
-  nbd.method = "relieff", 
+  predictors.mat,
+  nbd.method = "relieff",
   nbd.metric = "manhattan"
 )
 head(neighbor.pairs.idx)
 
 # reliefF (fixed-k) neighborhood with a user-specified k
 neighbor.pairs.idx <- nearestNeighbors(
-  predictors.mat, 
-  nbd.method = "relieff", 
-  nbd.metric = "manhattan", 
+  predictors.mat,
+  nbd.method = "relieff",
+  nbd.metric = "manhattan",
   k = 10
 )
 head(neighbor.pairs.idx)

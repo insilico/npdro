@@ -4,14 +4,14 @@
 # Rinbix package genetic association network (GAIN) functions.
 
 #' Differential coexpression genetic association interaction network (dcGAIN) algorithm.
-#' 
-#' \code{dcgain} 
-#' 
-#' @references 
+#'
+#' \code{dcgain}
+#'
+#' @references
 #' \itemize{
 #'   \item \url{http://www.biodatamining.org/content/8/1/5}
-#'   {Differential co-expression network centrality and machine learning 
-#'   feature selection for identifying susceptibility hubs in networks with 
+#'   {Differential co-expression network centrality and machine learning
+#'   feature selection for identifying susceptibility hubs in networks with
 #'   scale-free structure}
 #'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
 #' }
@@ -19,15 +19,15 @@
 #' @family GAIN functions
 #' @family inbix synonym functions
 #' @family Genetic Association Interaction Network functions
-#' @seealso \code{\link{dmgain}} for differential modularity. 
-#' \code{\link{dcgainInbix}} for inbix differential coexpression GAIN.
+#' @seealso \code{dmgain} for differential modularity.
+#' \code{dcgainInbix} for inbix differential coexpression GAIN.
 #' @param labelledDataFrame \code{data.frame} with samples in rows, variables in columns
 #' and classLabel in the last column.
-#' @param computeDiagP \code{logical} to use t-test for diagonal P-value (TRUE) 
+#' @param computeDiagP \code{logical} to use t-test for diagonal P-value (TRUE)
 #' or one (FLASE).
 #' @param verbose \code{logical} to send messages to stdout.
 #' @return results \code{matrix} of variable by variable differential coexpression values.
-#' @examples 
+#' @examples
 #' \donttest{
 #' data(testdata10)
 #' rinbixDcgain <- dcgain(testdata10)
@@ -46,13 +46,13 @@ dcgain <- function(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE) {
     cat("dcGAIN Group 1:", n1, "Group 2:", n2, "\n")
   }
   nVars <- ncol(exprBySubj)
-  
+
   # determine group correlations
   expr_g1 <- exprByGene[, phenos == 1]
   expr_g2 <- exprByGene[, phenos == 2]
   cor_table_g1 <- cor(t(expr_g1))
   cor_table_g2 <- cor(t(expr_g2))
-  
+
   # main effect diagonal
   results <- matrix(nrow = nVars, ncol = nVars, data = c(0))
   pvalues <- matrix(nrow = nVars, ncol = nVars, data = c(1))
@@ -66,7 +66,7 @@ dcgain <- function(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE) {
     z_i_2 <- 0.5 * log((abs((1 + g2_mean) / (1 - g2_mean))))
     Z_i <- abs(z_i_1 - z_i_2) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
     #Z_i <- abs(g1_mean - g2_mean) / sqrt((1/(n1 - 3) + 1 / (n2 - 3)))
-    results[i, i] <- Z_i  
+    results[i, i] <- Z_i
     if (computeDiagP) {
       # t-test for p-value
       t_result <- t.test(g1_data, g2_data)
@@ -76,7 +76,7 @@ dcgain <- function(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE) {
       pvalues[i, i] <- 1
     }
   }
-  
+
   # interactions
   for (i in 1:nVars) {
     for (j in 1:nVars) {
@@ -97,22 +97,22 @@ dcgain <- function(labelledDataFrame, computeDiagP = FALSE, verbose = FALSE) {
   }
   colnames(results) <- varNames
   colnames(pvalues) <- varNames
-  
+
   list(scores = results, pvals = pvalues)
 }
 
 #' Differential modularity genetic association network algorithm (dmGAIN) algorithm.
-#' 
-#' \code{dmgain} 
-#' 
-#' @references 
+#'
+#' \code{dmgain}
+#'
+#' @references
 #' \itemize{
 #'   \item \url{https://github.com/hexhead/inbix}{C++ inbix on github}
 #' }
 #' @keywords models array
 #' @family GAIN functions
 #' @family inbix synonym functions
-#' \code{\link{dcgain}} for differential correlation GAIN. 
+#' \code{\link{dcgain}} for differential correlation GAIN.
 #' @param labelledDataFrame \code{data.frame} with samples in rows, variables in columns
 #' and classLabel in the last column.
 #' @return results \code{matrix} of variable by variable differential modularity values.
@@ -130,11 +130,11 @@ dmgain <- function(labelledDataFrame) {
   n1 <- nrow(exprBySubj) / 2
   n2 <- nrow(exprBySubj) / 2
   nVars <- ncol(exprBySubj)
-  
+
   # determine group correlations
   cor_table_g1 <- cor(t(exprByGene[,phenos == 1]))
   cor_table_g2 <- cor(t(exprByGene[,phenos == 2]))
-  
+
   # main effect diagonal
   results <- matrix(nrow = nVars, ncol = nVars)
   pvalues <- matrix(nrow = nVars, ncol = nVars)
@@ -155,7 +155,7 @@ dmgain <- function(labelledDataFrame) {
     #     results[i, i] <- t_i
     #     pvalues[i, i] <- t_result$p.value
   }
-  
+
   # interactions
   # added from bam by bcw 7/29/14
   k_1 <- rowSums(cor_table_g1)
@@ -180,14 +180,14 @@ dmgain <- function(labelledDataFrame) {
   }
   colnames(results) <- varNames
   colnames(pvalues) <- varNames
-  
+
   list(scores = results, pvals = pvalues)
 }
 
 #' Get the interaction effect of a pair of variables using generalized linear regression.
-#' 
-#' \code{fitInteractionModel} 
-#' 
+#'
+#' \code{fitInteractionModel}
+#'
 #' @keywords models regression array
 #' @family GAIN functions
 #' @param labelledDataFrame \code{labelledDataFrame.frame} with variables in columns and samples in rows.
@@ -199,43 +199,43 @@ dmgain <- function(labelledDataFrame) {
 #' @return \code{data.frame} with variable, convergence status, beta coefficient,
 #' p-value, standard error and standardized beta columns.
 #' @keywords internal
-fitInteractionModel <- function(labelledDataFrame, variableIndices, depVarName, 
-                                regressionFamily, numCovariates, 
+fitInteractionModel <- function(labelledDataFrame, variableIndices, depVarName,
+                                regressionFamily, numCovariates,
                                 excludeMainEffects) {
   variable1Idx <- variableIndices[1]
   variable2Idx <- variableIndices[2]
   variableNames <- colnames(labelledDataFrame)[1:(ncol(labelledDataFrame) - 1)]
-  variable1Name <- variableNames[variable1Idx]  
+  variable1Name <- variableNames[variable1Idx]
   variable2Name <- variableNames[variable2Idx]
   if (excludeMainEffects) {
-    interactionTerm <- paste("`", variable1Name, "`", ":", "`", 
+    interactionTerm <- paste("`", variable1Name, "`", ":", "`",
                              variable2Name, "`", sep = "")
   } else {
-    interactionTerm <- paste("`", variable1Name, "`", "*", "`", 
+    interactionTerm <- paste("`", variable1Name, "`", "*", "`",
                              variable2Name, "`", sep = "")
   }
   if (numCovariates > 0) {
     covarsStart <- ncol(labelledDataFrame) - numCovariates + 1
     covarNames <- colnames(labelledDataFrame)[covarsStart:ncol(labelledDataFrame)]
     covarsModelParts <- paste(covarNames, collapse = " + ")
-    regressionFormula <- as.formula(paste(depVarName, "~", 
-                                          paste(interactionTerm, " + ", 
-                                                covarsModelParts, sep = ""), 
+    regressionFormula <- as.formula(paste(depVarName, "~",
+                                          paste(interactionTerm, " + ",
+                                                covarsModelParts, sep = ""),
                                           sep = " "))
   }
   else {
-    regressionFormula <- as.formula(paste(depVarName, "~", interactionTerm, 
+    regressionFormula <- as.formula(paste(depVarName, "~", interactionTerm,
                                           sep = " "))
   }
-  
+
   # use glm2: Fits generalized linear models using the same model specification
-  # as glm in the stats package, but with a modified default fitting method that 
+  # as glm in the stats package, but with a modified default fitting method that
   # provides greater stability for models that may fail to converge using glm
   # bcw - 10/18/15
-  regressionModel <- glm2::glm2(regressionFormula, 
-                                family = binomial(link = "logit"), 
+  regressionModel <- glm2::glm2(regressionFormula,
+                                family = binomial(link = "logit"),
                                 data = labelledDataFrame)
-  
+
   if (numCovariates > 0) {
     if (excludeMainEffects) {
       interactionTermIndex <- 1 + numCovariates + 1
@@ -253,10 +253,10 @@ fitInteractionModel <- function(labelledDataFrame, variableIndices, depVarName,
     }
   }
   #print(summary(regressionModel))
-  
+
   coeffs <- summary(regressionModel)$coefficients
   #print(coeffs)
-  
+
   # catch NA problems with interaction term fit
   if (nrow(coeffs)<interactionTermIndex){
     interactionCoeff <- NA
@@ -275,18 +275,18 @@ fitInteractionModel <- function(labelledDataFrame, variableIndices, depVarName,
     interactionStat <- summary(regressionModel)$coefficients[interactionTermIndex, "t value"]
     }
   }  # end catching fit NA problems
-  
-  data.frame(converged = regressionModel$converged, 
-             coef = interactionCoeff, 
-             stderr = interactionStdErr, 
-             pval = interactionPval, 
+
+  data.frame(converged = regressionModel$converged,
+             coef = interactionCoeff,
+             stderr = interactionStdErr,
+             pval = interactionPval,
              stdbeta = interactionStat)
 }
 
 #' Get the main effect of a variable using generalized linear regression .
-#' 
+#'
 #' \code{fitMainEffectModel}
-#' 
+#'
 #' @keywords models regression array internal
 #' @family GAIN functions
 #' @param labelledDataFrame \code{data.frame} with variables in columns and samples in rows.
@@ -294,9 +294,9 @@ fitInteractionModel <- function(labelledDataFrame, variableIndices, depVarName,
 #' @param depVarName \code{string} name of the classLabel variable.
 #' @param regressionFamily \code{string} glm regression family name.
 #' @param numCovariates \code{numeric}  of included covariates.
-#' @return \code{data.frame} with variable, convergence status, beta coefficient, 
+#' @return \code{data.frame} with variable, convergence status, beta coefficient,
 #' p-value, standard error and standardized beta columns.
-fitMainEffectModel <- function(labelledDataFrame, variableName, depVarName, 
+fitMainEffectModel <- function(labelledDataFrame, variableName, depVarName,
                                regressionFamily, numCovariates) {
   if (numCovariates > 0) {
     covarsStart <- ncol(labelledDataFrame) - numCovariates
@@ -305,17 +305,17 @@ fitMainEffectModel <- function(labelledDataFrame, variableName, depVarName,
     for (i in 1:length(covarNames)) {
       covarModelParts <- c(covarModelParts, paste("`", covarNames, "`", sep = ""))
     }
-    formulaString <- paste(depVarName, " ~ `", variableName, 
+    formulaString <- paste(depVarName, " ~ `", variableName,
                            "` + ", paste(covarModelParts, collapse = "+"), sep = "")
     regressionFormula <- as.formula(formulaString)
   } else {
-    regressionFormula <- as.formula(paste(depVarName, "~", 
-                                          paste("`", variableName, "`", sep = ""), 
+    regressionFormula <- as.formula(paste(depVarName, "~",
+                                          paste("`", variableName, "`", sep = ""),
                                           sep = " "))
   }
   regressionModel <- glm2::glm2(regressionFormula, data = labelledDataFrame,
                                 family = regressionFamily)
-  
+
   #interceptCoeff <- summary(regressionModel)$coefficients[1, "Estimate"]
   mainCoeff <- summary(regressionModel)$coefficients[2, "Estimate"]
   mainStdErr <- summary(regressionModel)$coefficients[2, "Std. Error"]
@@ -329,18 +329,18 @@ fitMainEffectModel <- function(labelledDataFrame, variableName, depVarName,
     mainPval <- summary(regressionModel)$coefficients[2, "Pr(>|t|)"]
     mainStat <- summary(regressionModel)$coefficients[2, "t value"]
   }
-  
-  data.frame(converged = regressionModel$converged, 
-             coef = mainCoeff, 
-             se = mainStdErr, 
-             pval = mainPval, 
+
+  data.frame(converged = regressionModel$converged,
+             coef = mainCoeff,
+             se = mainStdErr,
+             pval = mainPval,
              stdbeta = mainStat)
 }
 
 #' GAIN matrix to simple interaction format (SIF) converter.
-#' 
-#' \code{gainToSimpleSIF} 
-#' 
+#'
+#' \code{gainToSimpleSIF}
+#'
 #' @keywords array
 #' @family GAIN functions
 #' @param gainMatrix \code{matrix} GAIN matrix.
@@ -370,9 +370,9 @@ gainToSimpleSIF <- function(gainMatrix) {
 }
 
 #' Get interaction effects from generalized linear model regression.
-#' 
-#' \code{getInteractionEffects} 
-#' 
+#'
+#' \code{getInteractionEffects}
+#'
 #' @keywords models regression array internal
 #' @family GAIN functions
 #' @param depVarName \code{string} name of class column (e.g., "class")
@@ -388,36 +388,36 @@ gainToSimpleSIF <- function(gainMatrix) {
 #' @return results \code{matrix} of variable by variable regression coefficients.
 #' @export
 getInteractionEffects <- function(depVarName="class",
-                                  labelledDataFrame, 
-                                  regressionFamily = "binomial", 
+                                  labelledDataFrame,
+                                  regressionFamily = "binomial",
                                   numCovariates = 0,
-                                  writeBetas = FALSE, 
-                                  excludeMainEffects = FALSE, 
-                                  interactOutput = "stdBetas", 
-                                  transformMethod = "", 
-                                  numCores = 2, 
+                                  writeBetas = FALSE,
+                                  excludeMainEffects = FALSE,
+                                  interactOutput = "stdBetas",
+                                  transformMethod = "",
+                                  numCores = 2,
                                   verbose = FALSE) {
   allColumnNames <- colnames(labelledDataFrame)
   endVariableNames <- ncol(labelledDataFrame) - numCovariates - 1
   variableNames <- allColumnNames[1:endVariableNames]
   numVariables <- length(variableNames)
   if (verbose) {
-    cat("From", numVariables ,"generating", choose(numVariables,2), 
+    cat("From", numVariables ,"generating", choose(numVariables,2),
         "variable index pairs for reGAIN upper triangular matrix\n")
   }
   idxCombList <- combn(numVariables, 2, list)
-  if (verbose) { 
-    cat("Computing GLM interaction models for each index pair, in parallel\n") 
+  if (verbose) {
+    cat("Computing GLM interaction models for each index pair, in parallel\n")
   }
   #startTime <- proc.time()
-  results <- parallel::mclapply(idxCombList, 
+  results <- parallel::mclapply(idxCombList,
                                 mc.cores = numCores,
-                                function(interaction.vars) 
-                                  fitInteractionModel(labelledDataFrame, 
-                                                      interaction.vars, 
-                                                      depVarName, 
-                                                      regressionFamily, 
-                                                      numCovariates, 
+                                function(interaction.vars)
+                                  fitInteractionModel(labelledDataFrame,
+                                                      interaction.vars,
+                                                      depVarName,
+                                                      regressionFamily,
+                                                      numCovariates,
                                                       excludeMainEffects))
   #endTime <- proc.time()
   #cat("getInteractionEffects mclapply GLMFIT runtime:", (endTime - startTime)[3], "\n")
@@ -435,7 +435,7 @@ getInteractionEffects <- function(depVarName="class",
     thisComb <- idxCombList[[i]]
     variable1Idx <- thisComb[1]
     variable2Idx <- thisComb[2]
-    interactionName <- paste(variableNames[variable1Idx], "x", 
+    interactionName <- paste(variableNames[variable1Idx], "x",
                              variableNames[variable2Idx])
     regressionModel <- results[[i]]
     glmConverged <- regressionModel$converged
@@ -490,7 +490,7 @@ getInteractionEffects <- function(depVarName="class",
       #   print(summary(regressionModel))
       # }
     }
-    
+
     if (writeBetas) {
       allBetas <- NULL
       for (colIdx in 1:length(names(regressionModel$coefficients))) {
@@ -510,14 +510,14 @@ getInteractionEffects <- function(depVarName="class",
     endTime <- proc.time()
     cat("getInteractionEffects mclapply PROCESSING runtime:", (endTime - startTime)[3], "\n")
   }
-  
+
   if (writeBetas) {
-    if (verbose) cat("Writing interaction betas to intbetas.tab\n") 
+    if (verbose) cat("Writing interaction betas to intbetas.tab\n")
     # always
     betaCols <- c("Intercept", "Pval")
     # if main effects included
     if (!excludeMainEffects) {
-      betaCols <- c(betaCols, paste(c("Main Effect 1", "Pval", "Main Effect 2", "Pval"), 
+      betaCols <- c(betaCols, paste(c("Main Effect 1", "Pval", "Main Effect 2", "Pval"),
                                     sep = "\t"))
     }
     # if covariates
@@ -533,22 +533,22 @@ getInteractionEffects <- function(depVarName="class",
     write.table(betaInfo, file = "intbetas.tab", quote = FALSE, sep = "\t")
     rm(betaInfo)
   }
-  
+
   # clean up memory
   rm(idxCombList)
   rm(results)
-  
+
   interactionValues
 }
 
 #' Get main effects from generalized linear model regression (parallel).
-#' 
-#' \code{getMainEffects} 
-#' 
+#'
+#' \code{getMainEffects}
+#'
 #' @keywords models regression univar array internal
 #' @family GAIN functions
 #' @family inbix synonym functions
-#' @seealso \code{\link{rankUnivariateRegression}}
+#' @seealso \code{rankUnivariateRegression}
 #' @param labelledDataFrame \code{data.frame} with variables in columns and samples in rows.
 #' @param regressionFamily \code{string} glm regression family name.
 #' @param numCovariates \code{numeric}  of included covariates.
@@ -558,13 +558,13 @@ getInteractionEffects <- function(depVarName="class",
 #' @param numCores \code{numeric} number of processor cores to use in mclapply
 #' @param verbose \code{logical} to send verbose messages to stdout.
 #' @return mainEffectValues \code{vector} of main effect values.
-getMainEffects <- function(labelledDataFrame, 
-                           regressionFamily = "binomial", 
-                           numCovariates = 0, 
-                           writeBetas = FALSE, 
-                           useBetas = FALSE, 
-                           transformMethod = "", 
-                           numCores = 2, 
+getMainEffects <- function(labelledDataFrame,
+                           regressionFamily = "binomial",
+                           numCovariates = 0,
+                           writeBetas = FALSE,
+                           useBetas = FALSE,
+                           transformMethod = "",
+                           numCores = 2,
                            verbose = FALSE) {
   allColumnNames <- colnames(labelledDataFrame)
   depVarName <- "Class"
@@ -572,17 +572,17 @@ getMainEffects <- function(labelledDataFrame,
   variableNames <- allColumnNames[1:endVariableNames]
   numVariables <- length(variableNames)
   if (verbose) {
-    cat(paste("Computing GLM main effect models for each variable (", 
+    cat(paste("Computing GLM main effect models for each variable (",
               numVariables, "), in parallel", sep = ""), "\n")
   }
   #startTime <- proc.time()
-  results <- parallel::mclapply(variableNames, 
-                                mc.cores = numCores, 
-                                function(x) 
-                                  fitMainEffectModel(labelledDataFrame = labelledDataFrame, 
-                                                     variableName = x, 
-                                                     depVarName = depVarName, 
-                                                     regressionFamily = regressionFamily, 
+  results <- parallel::mclapply(variableNames,
+                                mc.cores = numCores,
+                                function(x)
+                                  fitMainEffectModel(labelledDataFrame = labelledDataFrame,
+                                                     variableName = x,
+                                                     depVarName = depVarName,
+                                                     regressionFamily = regressionFamily,
                                                      numCovariates = numCovariates))
   #endTime <- proc.time()
   #cat("getMainEffects mclapply GLMFIT runtime:", (endTime - startTime)[3], "\n")
@@ -632,7 +632,7 @@ getMainEffects <- function(labelledDataFrame,
         cat("WARNING: Main effect p-value < 2e-16", variableNames[i], "\n")
       }
     }
-    
+
     mainEffectValueTransformed <- mainEffectValue
     if (!is.na(mainEffectValue)) {
       if (transformMethod == "abs") {
@@ -659,9 +659,9 @@ getMainEffects <- function(labelledDataFrame,
     endTime <- proc.time()
     cat("getMainEffects mclapply PROCESSING runtime:", (endTime - startTime)[3], "\n")
   }
-  
+
   if (writeBetas) {
-    cat("Writing betas to mebetas.tab\n") 
+    cat("Writing betas to mebetas.tab\n")
     colNames <- c("Main Effect", "Pval")
     if (numCovariates > 0) {
       for (cn in 1:numCovariates) {
@@ -673,20 +673,20 @@ getMainEffects <- function(labelledDataFrame,
     write.table(betaInfo, file = "mebetas.tab", quote = FALSE, sep = "\t")
     rm(betaInfo)
   }
-  
+
   # clean up memory
   rm(results)
-  
+
   mainEffectValues
 }
 
 #' Front end to the reGAIN algorithm.
-#' 
+#'
 #' Tests number of variables/columns and runs either parallel R or parallel C++.
-#' 
+#'
 #' \code{regain}
-#' 
-#' @references 
+#'
+#' @references
 #' \itemize{
 #'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
 #'   {Genes & Immunity Paper}
@@ -710,22 +710,22 @@ getMainEffects <- function(labelledDataFrame,
 #' rinbixRegain <- regain(testdata10, stdBetas = TRUE, absBetas = TRUE)
 #' }
 #' @export
-regain <- function(depVarName, labelledDataFrame, 
-                   stdBetas = FALSE, 
-                   absBetas = FALSE, 
-                   numCores = 2, 
+regain <- function(depVarName, labelledDataFrame,
+                   stdBetas = FALSE,
+                   absBetas = FALSE,
+                   numCores = 2,
                    verbose = FALSE,
                    writeBetas = FALSE,
                    regressionFamily = "binomial") {
-  numVars <- ncol(labelledDataFrame) - 1  
+  numVars <- ncol(labelledDataFrame) - 1
   regainMatrix <- NULL
   # run C++ version if grater than 5000 variables
   if (numVars <= 5000) {
     if (verbose) cat("[", numVars, "] Running parallel R reGAIN\n")
-    regainMatrix <- regainParallel(depVarName, labelledDataFrame, 
-                                   stdBetas = stdBetas, 
+    regainMatrix <- regainParallel(depVarName, labelledDataFrame,
+                                   stdBetas = stdBetas,
                                    absBetas = absBetas,
-                                   numCores = numCores, 
+                                   numCores = numCores,
                                    verbose = verbose,
                                    writeBetas = writeBetas,
                                    interactOutput = "Betas",
@@ -734,19 +734,19 @@ regain <- function(depVarName, labelledDataFrame,
     cat("WARNING: More than 5000 variables, attempting to run reGAIN in C++\n")
     inbixExists()
     if (verbose) cat("[", numVars, "] Running C++ inbix reGAIN\n")
-    regainMatrix <- regainInbix(labelledDataFrame, 
-                                stdBetas = stdBetas, 
-                                absBetas = absBetas, 
+    regainMatrix <- regainInbix(labelledDataFrame,
+                                stdBetas = stdBetas,
+                                absBetas = absBetas,
                                 verbose = verbose)$reGAIN
   }
   regainMatrix
 }
 
 #' Parallel execution of the regression genetic association interaction network (reGAIN) algorithm.
-#' 
+#'
 #' \code{regainParallel}
-#' 
-#' @references 
+#'
+#' @references
 #' \itemize{
 #'   \item \url{http://www.nature.com/gene/journal/v11/n8/full/gene201037a.html}
 #'   {Genes & Immunity Paper}
@@ -772,33 +772,33 @@ regain <- function(depVarName, labelledDataFrame,
 #' rinbixRegain <- regainParallel(testdata10, stdBetas = TRUE, absBetas = TRUE)
 #' }
 #' @export
-regainParallel <- function(depVarName="class", labelledDataFrame, 
-                           stdBetas = FALSE, 
-                           absBetas = FALSE, 
-                           numCores = 2, 
-                           verbose = FALSE, 
+regainParallel <- function(depVarName="class", labelledDataFrame,
+                           stdBetas = FALSE,
+                           absBetas = FALSE,
+                           numCores = 2,
+                           verbose = FALSE,
                            writeBetas = FALSE,
                            interactOutput = "Betas",
                            regressionFamily = "binomial") {
   transform <- ifelse(absBetas, "abs", "")
   rawBetas <- ifelse(stdBetas, FALSE, TRUE)
-  mainEffects <- getMainEffects(labelledDataFrame, 
+  mainEffects <- getMainEffects(labelledDataFrame,
                                 useBetas = rawBetas,
                                 transformMethod = transform,
                                 numCores = numCores,
-                                verbose = verbose, 
+                                verbose = verbose,
                                 writeBetas = FALSE,
                                 regressionFamily = regressionFamily)
   regainMatrix <- getInteractionEffects(depVarName="class",
                                     labelledDataFrame,   # mod input
-                                    regressionFamily = regressionFamily, 
-                                    writeBetas = FALSE, 
-                                    excludeMainEffects = FALSE, 
+                                    regressionFamily = regressionFamily,
+                                    writeBetas = FALSE,
+                                    excludeMainEffects = FALSE,
                                     interactOutput = "stdBetas",    # add input
-                                    transformMethod = transform, 
-                                    numCores = numCores, 
-                                    verbose = FALSE) 
-  
+                                    transformMethod = transform,
+                                    numCores = numCores,
+                                    verbose = FALSE)
+
   diag(regainMatrix) <- mainEffects
   colnames(regainMatrix) <- colnames(labelledDataFrame)[1:(ncol(labelledDataFrame) - 1)]
   # replace NAs with zero

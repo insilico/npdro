@@ -10,7 +10,7 @@
 #' @param type diff rule for the given attribute data type, such as numeric, categorical or correlation-data vector.
 #' @param diff.type Metric for the difference computation.
 #' @param norm.fac Normalization factor.
-#' 
+#'
 #' @return val diff or vector of diffs
 #' @export
 npdrDiff <- function(a, b, diff.type = "numeric-abs", norm.fac = 1) {
@@ -49,7 +49,7 @@ npdrDiff <- function(a, b, diff.type = "numeric-abs", norm.fac = 1) {
 #' @examples
 #' train_dat <- case.control.3sets$train
 #' dist.mat <- npdrDistances(
-#'   train_dat[, names(train_dat) != "class"], 
+#'   train_dat[, names(train_dat) != "class"],
 #'   metric = "manhattan"
 #' )
 npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
@@ -99,7 +99,7 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 #'
 #' @param attr.mat m x p matrix of m instances and p attributes
 #' @param nbd.metric used in npdrDistances for distance matrix between instances, default: \code{"manhattan"} (numeric)
-#' @param nbd.method neighborhood method [\code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)]
+#' @param nbd.method neighborhood method \code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)
 #' @param sd.vec vector of standard deviations
 #' @param sd.frac multiplier of the standard deviation from the mean distances, subtracted from mean distance to create for SURF or multiSURF radius. The multiSURF default "dead-band radius" is sd.frac=0.5: mean - sd/2
 #' @param k number of constant nearest hits/misses for \code{"relieff"} (fixed k).
@@ -115,32 +115,32 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 
 #' # multisurf neighborhood with sigma/2 (sd.frac=0.5) "dead-band" boundary
 #' neighbor.pairs.idx <- nearestNeighbors(
-#'   predictors.mat, 
-#'   nbd.method = "multisurf", 
-#'   nbd.metric = "manhattan", 
+#'   predictors.mat,
+#'   nbd.method = "multisurf",
+#'   nbd.metric = "manhattan",
 #'   sd.frac = 0.5
 #' )
 #' head(neighbor.pairs.idx)
-#' 
-#' # reliefF (fixed-k) neighborhood using default `k` equal to 
+#'
+#' # reliefF (fixed-k) neighborhood using default `k` equal to
 #' # theoretical surf expected value.
 #' # One can change the theoretical value by changing sd.frac (default 0.5).
 #' neighbor.pairs.idx <- nearestNeighbors(
-#'   predictors.mat, 
-#'   nbd.method = "relieff", 
+#'   predictors.mat,
+#'   nbd.method = "relieff",
 #'   nbd.metric = "manhattan"
 #' )
 #' head(neighbor.pairs.idx)
-#' 
+#'
 #' # reliefF (fixed-k) neighborhood with a user-specified k
 #' neighbor.pairs.idx <- nearestNeighbors(
-#'   predictors.mat, 
-#'   nbd.method = "relieff", 
-#'   nbd.metric = "manhattan", 
+#'   predictors.mat,
+#'   nbd.method = "relieff",
+#'   nbd.metric = "manhattan",
 #'   k = 10
 #' )
 #' head(neighbor.pairs.idx)
-#' 
+#'
 nearestNeighbors <- function(attr.mat,
                              nbd.method = "multisurf",
                              nbd.metric = "manhattan",
@@ -536,16 +536,16 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
 #' @return new neighborhood pair matrix of only unique pairs
 #' unique neighbor pairs
 #' @export
-#' 
+#'
 #' @examples
 #' neighbor.pairs.idx <- nearestNeighbors(
-#'   predictors.mat, 
-#'   nbd.method = "multisurf", 
-#'   nbd.metric = "manhattan", 
+#'   predictors.mat,
+#'   nbd.method = "multisurf",
+#'   nbd.metric = "manhattan",
 #'   sd.frac = 0.5
 #' )
 #' head(uniqueNeighbors(neighbor.pairs.idx))
-#' 
+#'
 uniqueNeighbors <- function(neighbor.pairs) {
   # input: two columns of redundant "i,j" pairs
   # return: two columns of unique pairs from the redundant input
@@ -570,15 +570,15 @@ uniqueNeighbors <- function(neighbor.pairs) {
 #'
 #' @examples
 #' neighbor.pairs.idx <- nearestNeighbors(
-#'   predictors.mat, 
-#'   nbd.method = "multisurf", 
-#'   nbd.metric = "manhattan", 
+#'   predictors.mat,
+#'   nbd.method = "multisurf",
+#'   nbd.metric = "manhattan",
 #'   sd.frac = 0.5
 #' )
 #' mean(knnVec(neighbor.pairs.idx)) # average number of neighbors
-#' 
+#'
 #' @export
-#' 
+#'
 knnVec <- function(neighbor.pairs.mat) {
   knn.vec <- data.frame(neighbor.pairs.mat) %>%
     dplyr::count(Ri_idx) %>%

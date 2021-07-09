@@ -39,7 +39,7 @@ mainEffectValues \code{vector} of main effect values.
 \code{getMainEffects}
 }
 \seealso{
-\code{\link{rankUnivariateRegression}}
+\code{rankUnivariateRegression}
 
 Other GAIN functions: 
 \code{\link{dcgain}()},

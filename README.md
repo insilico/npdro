@@ -1,12 +1,15 @@
+<style>
+H1{color:Black !important; text-align:center}
+H2{color:Red !important; text-align:center}
+p{color:Black !important;}
+</style>
 # npdro
+## Vote 
+## for 
+## n-Pdro
+# It's Dynamite
 
-<strong>
-<span style="color: red;">Vote for n-pdro</span>
-<p>
-</strong>
-<span style="color: red;">It's Dynamite</span> 
-
-Nearest-neighbor Projected Distance Regression - Optimized (npdro). NPDR with extensions for optimizing  neighborhoods and number of neighbors to detect main effects and interactions in feature selection. Neighbor optimization methods include consensus nested cross-validation (cncv) with classification, varible-wise optimized-k (vwok), and principal component optimized-k (kPCA). Also includes optional speed optimizations.
+Nearest-neighbor Projected Distance Regression - Optimized (<strong>npdro</strong>). npdro extends ndpr for optimizing neighborhoods and the number of neighbors to detect main effects and interactions in feature selection. Neighbor optimization methods include consensus nested cross-validation (cncv) with classification, varible-wise optimized-k (vwok), and principal component optimized-k (kPCA). Also includes optional speed optimizations.
 
 #### Websites
 
