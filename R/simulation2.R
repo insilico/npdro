@@ -20,8 +20,8 @@
 
 ################################
 #npdro-package.R
-##' @useDynLib npdro
-##' @importFrom Rcpp sourceCpp
+# sharp' here @useDynLib npdro
+# sharp' here @importFrom Rcpp sourceCpp
 #NULL
 
 # fisher r-to-z
