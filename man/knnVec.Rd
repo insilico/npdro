@@ -23,5 +23,4 @@ neighbor.pairs.idx <- nearestNeighbors(
   sd.frac = 0.5
 )
 mean(knnVec(neighbor.pairs.idx)) # average number of neighbors
-
 }

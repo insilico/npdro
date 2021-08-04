@@ -7,38 +7,36 @@
 #'
 #' @param a value of attribute for first instance. Vector for correlation-data.
 #' @param b value of attribute for second instance. Vector for correlation-data.
-#' @param type diff rule for the given attribute data type, such as numeric, categorical or correlation-data vector.
 #' @param diff.type Metric for the difference computation.
 #' @param norm.fac Normalization factor.
 #'
-#' @return val diff or vector of diffs
+#' @return Value or vector of differences between two vectors element-wise.
 #' @export
-npdrDiff <- function(a, b, diff.type = "numeric-abs", norm.fac = 1) {
-  # compute the difference between two vectors element-wise
-  if (diff.type == "numeric-sqr") { # numeric squared difference
-    val <- abs(a - b)^2 / norm.fac
-  } else if (diff.type == "allele-sharing") { # snps
-    val <- abs(a - b) / 2
-  } else if (diff.type == "match-mismatch") {
-    # used automatically for case-control pheno, optional genotype mismatch diff for snps
-    val <- ifelse(a == b, 0, 1) # hit pairs are 0 and miss pairs are 1
-    # val <- as.character(a==b) # convert this to factor in glmSTIR
-  } else if (diff.type == "correlation-data") { # correlation data (e.g., fmri)      # corrdata
-    # For correlation data, a and b are matrices
-    # with m*k rows and numvars-1 cols.
-    # m*k rows because looking at all neighbor pairs
-    # (fixed k not required).
-    # nvars-1 because for a given var,
-    # we are looking at all other correlation partners.
-    # a represents the first of neighbor pairs
-    # b represents the second of neighbor pairs
-    # See Eq. 157 and Fig. 9 from
-    # https://doi.org/10.1371/journal.pone.0246761
-    val <- rowSums(abs(a - b) / norm.fac) # a and b are vectors in this case   # corrdata
-  } else { # numeric abs difference
-    val <- abs(a - b) / norm.fac
-  }
-  return(val)
+npdrDiff <- function(a, b, diff.type = c("manhattan", "numeric-abs", "numeric-sqr", "allele-sharing", "match-mismatch", "correlation-data"), norm.fac = 1) {
+  if (is.null(diff.type)) diff.type <- "numeric-abs"
+
+  diff.type <- match.arg(diff.type)
+
+  val <- switch(diff.type,
+    `numeric-sqr` = abs(a - b)^2 / norm.fac, # numeric squared difference
+    `allele-sharing` = abs(a - b) / 2, # snps
+    `match-mismatch` = ifelse(a == b, 0, 1), # hit pairs = 0, miss = 1
+    `correlation-data` = rowSums(abs(a - b) / norm.fac), # a and b are matrices
+    `numeric-abs` = abs(a - b) / norm.fac, # numeric abs difference
+    `manhattan` = abs(a - b) / norm.fac # same as numeric-abs
+  )
+  # For correlation data, a and b are matrices 
+  # with m*k rows and numvars-1 cols.
+  # m*k rows because looking at all neighbor pairs 
+  # (fixed k not required).
+  # nvars-1 because for a given var, 
+  # we are looking at all other correlation partners. 
+  # a represents the first of neighbor pairs
+  # b represents the second of neighbor pairs
+  # See Eq. 157 and Fig. 9 from
+  # https://doi.org/10.1371/journal.pone.0246761
+  
+  val
 }
 
 # =========================================================================#
@@ -63,42 +61,43 @@ npdrDiff <- function(a, b, diff.type = "numeric-abs", norm.fac = 1) {
 #'   metric = "manhattan"
 #' )
 npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
+  npdr.dist.fn <- dist
   if (fast.dist) {
+    check_installed("wordspace", reason = "for fast distance computation with `dist.matrix()`")
     npdr.dist.fn <- wordspace::dist.matrix
-  } else {
-    npdr.dist.fn <- dist
   }
 
   # Compute distance matrix between all samples (rows)
   # default is numeric manhattan ("manhattan"), max-min scaling is only needed for relief
   if (metric == "hamming") {
-    distance.mat <- hamming.binary(attr.mat)
-  } else if (metric == "allele-sharing-manhattan") {
+    return(as.matrix(hamming.binary(attr.mat)))
+  }
+
+  if (metric == "allele-sharing-manhattan") {
     # allele-sharing-manhattan, AM for SNPs
+
     attr.mat.scale <- attr.mat / 2
     distance.mat <- npdr.dist.fn(attr.mat.scale, method = "manhattan")
-  } else if (metric == "relief-scaled-manhattan") {
+    return(as.matrix(distance.mat))
+  }
+
+  if (metric == "relief-scaled-euclidean" ||
+    metric == "relief-scaled-manhattan") {
     # value of metric, euclidean, manhattan or maximum
-    maxminVec <- attr.range(attr.mat)
-    minVec <- apply(attr.mat, 2, function(x) {
-      min(x)
-    })
-    attr.mat.centered <- t(attr.mat) - minVec
-    attr.mat.scale <- t(attr.mat.centered / maxminVec)
-    distance.mat <- npdr.dist.fn(attr.mat.scale, method = "manhattan")
-  } else if (metric == "relief-scaled-euclidean") {
-    # value of metric, euclidean, manhattan or maximum
+
+    method <- strsplit(metric, "-")[[1]][3]
     maxminVec <- attr.range(attr.mat)
     minVec <- apply(attr.mat, 2, min)
     attr.mat.centered <- t(attr.mat) - minVec
     attr.mat.scale <- t(attr.mat.centered / maxminVec)
-    distance.mat <- npdr.dist.fn(attr.mat.scale, method = "euclidean")
-  } else if (metric == "euclidean") {
-    distance.mat <- npdr.dist.fn(attr.mat, method = "euclidean")
-  } else {
-    distance.mat <- npdr.dist.fn(attr.mat, method = "manhattan")
+    distance.mat <- npdr.dist.fn(attr.mat.scale, method = method)
+    return(as.matrix(distance.mat))
   }
-  as.matrix(distance.mat)
+
+  if (metric == "euclidean" || metric == "manhattan") {
+    distance.mat <- npdr.dist.fn(attr.mat, method = metric)
+    return(as.matrix(distance.mat))
+  }
 }
 
 # =========================================================================#
@@ -108,8 +107,10 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 #' Used for npdr (no hits or misses specified in neighbor function).
 #'
 #' @param attr.mat m x p matrix of m instances and p attributes
-#' @param nbd.metric used in npdrDistances for distance matrix between instances, default: \code{"manhattan"} (numeric)
-#' @param nbd.method neighborhood method \code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)
+#' @param nbd.metric used in npdrDistances for distance matrix between instances,
+#' default to `manhattan` (numeric input).
+#' @param nbd.method neighborhood method `multisurf` or `surf` (no k) or `relieff`
+#' (require k).
 #' @param sd.vec vector of standard deviations
 #' @param sd.frac multiplier of the standard deviation from the mean distances, subtracted from mean distance to create for SURF or multiSURF radius. The multiSURF default "dead-band radius" is sd.frac=0.5: mean - sd/2
 #' @param k number of constant nearest hits/misses for \code{"relieff"} (fixed k).
@@ -122,7 +123,7 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 #'
 #' @export
 #' @examples
-
+#'
 #' # multisurf neighborhood with sigma/2 (sd.frac=0.5) "dead-band" boundary
 #' neighbor.pairs.idx <- nearestNeighbors(
 #'   predictors.mat,
@@ -150,13 +151,19 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 #'   k = 10
 #' )
 #' head(neighbor.pairs.idx)
-#'
 nearestNeighbors <- function(attr.mat,
                              nbd.method = "multisurf",
                              nbd.metric = "manhattan",
                              sd.vec = NULL, sd.frac = 0.5, k = 0,
                              neighbor.sampling = "none",
                              att_to_remove = c(), fast.dist = FALSE, dopar.nn = FALSE) {
+  if (dopar.nn) {
+    check_installed("foreach", reason = "for fast parallel computing with `foreach()` and `%dopar%`")
+    check_installed("doParallel", reason = "for `registerDoParallel()`")
+    check_installed("parallel", reason = "for `makeCluster()`, `detectCores()`, and `stopCluster()`")
+    `%dopar%` <- foreach::`%dopar%`
+  }
+
   # create a matrix with num.samp rows and two columns
   # first column is sample Ri, second is Ri's nearest neighbors
   num.samp <- nrow(attr.mat)
@@ -174,8 +181,8 @@ nearestNeighbors <- function(attr.mat,
     as.matrix() %>%
     unname() %>%
     npdrDistances(metric = nbd.metric, fast.dist = fast.dist) %>%
-    as.data.frame()
-  colnames(dist.mat) <- seq.int(num.samp)
+    as.data.frame() %>%
+    `colnames<-`(seq.int(num.samp))
 
   if (nbd.method == "relieff") {
     if (k == 0) { # if no k specified or value 0
@@ -190,12 +197,12 @@ nearestNeighbors <- function(attr.mat,
       cl <- parallel::makeCluster(avai.cors)
       doParallel::registerDoParallel(cl)
       Ri_NN.idxmat <- foreach::foreach(
-        Ri.int = seq.int(num.samp), .combine = "rbind", .packages = c("dplyr", "tibble")
+        Ri.int = seq.int(num.samp), .combine = "rbind", .packages = c("dplyr")
       ) %dopar% {
         Ri <- as.character(Ri.int)
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>% # select the column Ri, hopefully reduce processing power
-          tibble::rownames_to_column() %>% # push the neighbors from rownames to a column named rowname
+          rownames2columns() %>% # push the neighbors from rownames to a column named rowname
           top_n(-(k + 1), !!sym(Ri)) %>% # select the k closest neighbors, include self
           filter((!!sym(Ri)) > 0) %>% # top_n does not sort output, so make sure remove self
           pull(rowname) %>% # get the neighbors
@@ -212,7 +219,7 @@ nearestNeighbors <- function(attr.mat,
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
           # select the column Ri, hopefully reduce processing power
-          tibble::rownames_to_column() %>%
+          rownames2columns() %>%
           # push the neighbors from rownames to columns
           dplyr::top_n(-(k + 1), !!sym(Ri)) %>%
           # select the k closest neighbors, include self
@@ -248,13 +255,13 @@ nearestNeighbors <- function(attr.mat,
       cl <- parallel::makeCluster(avai.cors)
       doParallel::registerDoParallel(cl)
       Ri_NN.idxmat <- foreach::foreach(
-        Ri.int = seq.int(num.samp), .combine = "rbind", .packages = c("dplyr", "tibble")
+        Ri.int = seq.int(num.samp), .combine = "rbind", .packages = c("dplyr")
       ) %dopar% {
         Ri <- as.character(Ri.int)
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
           # select the column Ri, hopefully reduce processing power
-          tibble::rownames_to_column() %>%
+          rownames2columns() %>%
           # push the neighbors from rownames to columns
           dplyr::filter(((!!sym(Ri)) < Ri.radius[Ri]) & ((!!sym(Ri)) > 0)) %>%
           dplyr::pull(rowname) %>%
@@ -272,7 +279,7 @@ nearestNeighbors <- function(attr.mat,
         Ri.int <- as.integer(Ri)
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
-          tibble::rownames_to_column() %>%
+          rownames2columns() %>%
           filter(((!!sym(Ri)) < Ri.radius[Ri]) & ((!!sym(Ri)) > 0)) %>%
           pull(rowname) %>%
           as.integer()
@@ -292,7 +299,7 @@ nearestNeighbors <- function(attr.mat,
   }
 
   # matrix of Ri's (first column) and their NN's (second column)
-  return(Ri_NN.idxmat)
+  Ri_NN.idxmat
 }
 
 # =========================================================================#
@@ -326,7 +333,6 @@ nearestNeighbors <- function(attr.mat,
 #'   sd.frac = .5, k = 0
 #' )
 #' head(neighbor.pairs.idx)
-
 nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
                                             nbd.method = "relieff",
                                             nbd.metric = "manhattan",
@@ -362,18 +368,18 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
     as.matrix() %>%
     unname() %>%
     npdrDistances(metric = nbd.metric, fast.dist = fast.dist) %>%
-    as.data.frame()
-  colnames(dist.mat) <- seq.int(num.samp)
+    as.data.frame() %>%
+    `colnames<-`(as.integer(seq.int(num.samp)))
 
   if (nbd.method == "relieff") {
     if (k == 0) { # if no k specified or value 0
       # replace k with the theoretical expected value for SURF (close to multiSURF)
       erf <- function(x) 2 * pnorm(x * sqrt(2)) - 1
       # theoretical surf k (sd.frac=.5) for regression problems (does not depend on a hit/miss group)
-      #k.alpha <- function(m,alpha){
+      # k.alpha <- function(m,alpha){
       #  floor((m - 1) * (1 - erf(alpha / sqrt(2))) / 2)
-      #}
-      k <- knnSURF(num.samp,sd.frac) # uses sd.frac
+      # }
+      k <- knnSURF(num.samp, sd.frac) # uses sd.frac
       # we will use different k for imbalanced data
     }
 
@@ -384,8 +390,6 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
       Ri.nearestPairs.list <- foreach::foreach(
         Ri.int = seq.int(num.samp), .packages = c("dplyr")
       ) %dopar% {
-        # Ri <- as.character(Ri.int)
-        # Ri.int <- as.integer(Ri)
         Ri.distances <- dist.mat[Ri.int, ] # all distances to sample Ri
         Ri.nearest <- order(Ri.distances, decreasing = F) # closest to farthest
         # consider distance distributions of hits and misses separately
@@ -397,36 +401,20 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
         m.miss <- length(Ri.misses)
 
         pheno.tab <- as.numeric(table(as.character(pheno.vec)))
-        if(pheno.tab[1]==pheno.tab[2]){
-          k.hits <- floor(0.5*knnSURF(num.samp - 1, sd.frac))
+        if (pheno.tab[1] == pheno.tab[2]) {
+          k.hits <- floor(0.5 * knnSURF(num.samp - 1, sd.frac))
           k.miss <- k.hits
-        }else{
+        } else {
           k.hits <- knnSURF(m.hits, sd.frac)
           k.miss <- knnSURF(m.miss, sd.frac)
         }
 
-        Ri.nearest.idx <- Ri.hits[2:(k.hits + 1)]
-        Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:k.miss])
-        # remove 7-28-21
+        Ri.nearest.idx <- c(Ri.hits[2:(k.hits + 1)], Ri.misses[1:k.miss])
+
+        # 7-28-21
         # make hit and miss neighborhoods the same size
         # depending on whether Ri is majority or minority class, the number of hits/misses changes
-        # if (pheno.vec[Ri.int] == majority.pheno) {
-        #   #Ri.nearest.idx <- Ri.hits[2:floor(majority.frac * k + 1)] # start at 2, skip Ri self
-        #   # if majority class Ri,
-        #   # get neighbors up to the theoretical k_alpha
-        #   # proper adjust for the class imbalance.
-        #   Ri.nearest.idx <- Ri.hits[seq(2,k.alpha(floor(num.samp*majority.frac), sd.frac) + 1)]
-        #   # concatenate misses
-        #   #Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:floor((1 - majority.frac) * k + 1)])
-        #   Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[seq(1,k.alpha(floor(num.samp*(1-majority.frac)), sd.frac) + 1)])
-        # } else {
-        #   # if Ri is the minority class
-        #   #Ri.nearest.idx <- Ri.hits[2:floor((1 - majority.frac) * k + 1)] # (2) skip Ri self
-        #   Ri.nearest.idx <- Ri.hits[seq(2,k.alpha(floor(num.samp*(1-majority.frac)), sd.frac) + 1)]
-        #   # concatenate misses
-        #   #Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:floor(majority.frac * k + 1)])
-        #   Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[seq(1,k.alpha(floor(num.samp*majority.frac), sd.frac) + 1)])
-        # }
+
         if (!is.null(Ri.nearest.idx)) { # if neighborhood not empty
           # bind automatically repeated Ri, make sure to skip Ri self
           return(data.frame(Ri_idx = Ri.int, NN_idx = Ri.nearest.idx))
@@ -434,15 +422,29 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
       }
       ## [1] 1.000000 1.414214 1.732051
       parallel::stopCluster(cl)
-    } else {
+    } else {  # begin non-parallel version
       Ri.nearestPairs.list <- vector("list", num.samp)
       for (Ri in colnames(dist.mat)) { # for each sample Ri
         Ri.int <- as.integer(Ri)
-        Ri.distances <- dist.mat[Ri.int, ] # all distances to sample Ri
+        Ri.distances <- dist.mat[Ri, ] # all distances to sample Ri
         Ri.nearest <- order(Ri.distances, decreasing = F) # closest to farthest
         # consider distance distributions of hits and misses separately
         Ri.hits <- Ri.nearest[pheno.vec[Ri.int] == pheno.vec[Ri.nearest]]
         Ri.misses <- Ri.nearest[pheno.vec[Ri.int] != pheno.vec[Ri.nearest]]
+        # 7-28-21 better way for imbalance
+        m.hits <- length(Ri.hits) - 1
+        m.miss <- length(Ri.misses)
+        pheno.tab <- as.numeric(table(as.character(pheno.vec)))
+        if(pheno.tab[1]==pheno.tab[2]){
+          k.hits <- floor(0.5*knnSURF(num.samp - 1, sd.frac))
+          k.miss <- k.hits
+        }else{
+          k.hits <- knnSURF(m.hits, sd.frac)
+          k.miss <- knnSURF(m.miss, sd.frac)
+        }
+        Ri.nearest.idx <- Ri.hits[2:(k.hits + 1)]
+        Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:k.miss]) 
+        
         # for misses, option to use farthest is not a good idea because it makes all variables appear
         # different between groups, even null variables
         # if (miss.ordering=="farthest"){ # choose misses that are farthest from Ri
@@ -451,15 +453,13 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
         #
         # make hit and miss neighborhoods the same size (balanced)
         # depending on whether Ri is majority or minority class, the number of hits/misses changes
-        if (pheno.vec[Ri.int] == majority.pheno) {
-          Ri.nearest.idx <- Ri.hits[2:floor(majority.frac * k + 1)] # (2) skip Ri self
-          # concatenate misses
-          Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:floor((1 - majority.frac) * k + 1)])
-        } else {
-          Ri.nearest.idx <- Ri.hits[2:floor((1 - majority.frac) * k + 1)] # (2) skip Ri self
-          # concatenate misses
-          Ri.nearest.idx <- c(Ri.nearest.idx, Ri.misses[1:floor(majority.frac * k + 1)])
-        }
+
+        # 7-28-21 replacing with above method for imbalance
+        #hits.frac <- if (pheno.vec[Ri.int] == majority.pheno) majority.frac else (1 - majority.frac)
+        #Ri.nearest.idx <- c(
+        #  Ri.hits[2:floor(hits.frac * k + 1)], # (2) skip Ri self
+        #  Ri.misses[1:floor((1 - hits.frac) * k + 1)]
+        #)
 
         if (!is.null(Ri.nearest.idx)) { # if neighborhood not empty
           # bind automatically repeated Ri, make sure to skip Ri self
@@ -471,7 +471,6 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
 
     Ri_NN.idxmat <- dplyr::bind_rows(Ri.nearestPairs.list)
   } else { # surf or multisurf...
-
 
     # For treating hit/miss distance distributions separately, compute separate hit and miss radii
     # User might want to shrink alpha standard deviation fraction. Unlike relieff, the hit and miss
@@ -504,7 +503,7 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
 
       Ri.hit.radii <- vector("numeric", num.samp)
       Ri.miss.radii <- vector("numeric", num.samp)
-      for (i in seq(1, num.samp)) {
+      for (i in seq.int(num.samp)) {
         # grab neighbors that are hits of Ri
         hit.mask <- pheno.vec[i] == pheno.vec
         hit.mask <- hit.mask[-i] # remove self
@@ -517,8 +516,7 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
         Ri.miss.radii[i] <- mean(miss.dist.row) - sd.frac * sd(miss.dist.row)
       }
 
-      names(Ri.hit.radii) <- as.character(1:num.samp)
-      names(Ri.miss.radii) <- as.character(1:num.samp)
+      names(Ri.hit.radii) <- names(Ri.miss.radii) <- as.character(1:num.samp)
     } # end multisurf radii calc
 
     if (dopar.nn) {
@@ -530,7 +528,7 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
       ) %dopar% {
         Ri.distances <- dist.mat[Ri.int, ]
         Ri.nearest.hits <- which((pheno.vec[Ri.int] == pheno.vec) & (Ri.distances < Ri.hit.radii[Ri.int]) &
-                                   (Ri.distances > 0)) # skip Ri self (dist=0)
+          (Ri.distances > 0)) # skip Ri self (dist=0)
         Ri.nearest.misses <- which((pheno.vec[Ri.int] != pheno.vec) & (Ri.distances < Ri.miss.radii[Ri.int]))
         # join hit and miss into one nbd
         Ri.nearest.idx <- c(Ri.nearest.hits, Ri.nearest.misses)
@@ -548,7 +546,7 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
         Ri.int <- as.integer(Ri)
         Ri.distances <- dist.mat[Ri.int, ]
         Ri.nearest.hits <- which((pheno.vec[Ri.int] == pheno.vec) & (Ri.distances < Ri.hit.radii[Ri.int]) &
-                                   (Ri.distances > 0)) # skip Ri self (dist=0)
+          (Ri.distances > 0)) # skip Ri self (dist=0)
         Ri.nearest.misses <- which((pheno.vec[Ri.int] != pheno.vec) & (Ri.distances < Ri.miss.radii[Ri.int]))
         # join hit and miss into one nbd
         Ri.nearest.idx <- c(Ri.nearest.hits, Ri.nearest.misses)
@@ -578,8 +576,8 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
 #' Used as options (neighbor.sampling="unique") in nearestNeighbors and npdr functions.
 #'
 #' @param neighbor.pairs two columns of (possibly redundant) "i,j" pairs from nearestNeighbors function
-#' @return new neighborhood pair matrix of only unique pairs
-#' unique neighbor pairs
+#' @return two columns of unique pairs from the possibly redundant input, i.e.,
+#' new neighborhood pair matrix of only unique neighbor pairs
 #' @export
 #'
 #' @examples
@@ -590,19 +588,17 @@ nearestNeighborsSeparateHitMiss <- function(attr.mat, pheno.vec,
 #'   sd.frac = 0.5
 #' )
 #' head(uniqueNeighbors(neighbor.pairs.idx))
-#'
 uniqueNeighbors <- function(neighbor.pairs) {
-  # input: two columns of redundant "i,j" pairs
-  # return: two columns of unique pairs from the redundant input
+  # return:
   # sort and make create redundant vector of "i,j" pairs
   # e.g., pairs 1  36 and 36  1 both become 1  36
-  sorted_pairs <- data.frame(
+  pair_str <- data.frame(
     xmin = pmin(neighbor.pairs[, 1], neighbor.pairs[, 2]),
     xmax = pmax(neighbor.pairs[, 1], neighbor.pairs[, 2])
-  )
-  pair_str <- tidyr::unite(sorted_pairs, "combined", xmin, xmax, sep = ",")
-  unique.idx <- !duplicated(pair_str)
-  return(neighbor.pairs[unique.idx, ])
+  ) %>%
+    transmute(combined = paste0(xmin, ",", xmax))
+
+  neighbor.pairs[!duplicated(pair_str), ]
 }
 
 # =========================================================================#
@@ -621,12 +617,10 @@ uniqueNeighbors <- function(neighbor.pairs) {
 #'   sd.frac = 0.5
 #' )
 #' mean(knnVec(neighbor.pairs.idx)) # average number of neighbors
-#'
 #' @export
 #'
 knnVec <- function(neighbor.pairs.mat) {
-  knn.vec <- data.frame(neighbor.pairs.mat) %>%
+  data.frame(neighbor.pairs.mat) %>%
     dplyr::count(Ri_idx) %>%
     pull(n)
-  knn.vec
 }

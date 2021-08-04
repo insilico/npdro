@@ -20,9 +20,11 @@ nearestNeighbors(
 \arguments{
 \item{attr.mat}{m x p matrix of m instances and p attributes}
 
-\item{nbd.method}{neighborhood method \code{"multisurf"} or \code{"surf"} (no k) or \code{"relieff"} (specify k)}
+\item{nbd.method}{neighborhood method \code{multisurf} or \code{surf} (no k) or \code{relieff}
+(require k).}
 
-\item{nbd.metric}{used in npdrDistances for distance matrix between instances, default: \code{"manhattan"} (numeric)}
+\item{nbd.metric}{used in npdrDistances for distance matrix between instances,
+default to \code{manhattan} (numeric input).}
 
 \item{sd.vec}{vector of standard deviations}
 
@@ -47,6 +49,7 @@ Find nearest neighbors of each instance using relief.method
 Used for npdr (no hits or misses specified in neighbor function).
 }
 \examples{
+
 # multisurf neighborhood with sigma/2 (sd.frac=0.5) "dead-band" boundary
 neighbor.pairs.idx <- nearestNeighbors(
   predictors.mat,
@@ -74,5 +77,4 @@ neighbor.pairs.idx <- nearestNeighbors(
   k = 10
 )
 head(neighbor.pairs.idx)
-
 }

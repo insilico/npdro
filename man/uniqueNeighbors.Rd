@@ -10,8 +10,8 @@ uniqueNeighbors(neighbor.pairs)
 \item{neighbor.pairs}{two columns of (possibly redundant) "i,j" pairs from nearestNeighbors function}
 }
 \value{
-new neighborhood pair matrix of only unique pairs
-unique neighbor pairs
+two columns of unique pairs from the possibly redundant input, i.e.,
+new neighborhood pair matrix of only unique neighbor pairs
 }
 \description{
 Find pairs of unique nearest neighbors pairs from possible redundant pairs.
@@ -25,5 +25,4 @@ neighbor.pairs.idx <- nearestNeighbors(
   sd.frac = 0.5
 )
 head(uniqueNeighbors(neighbor.pairs.idx))
-
 }
