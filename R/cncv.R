@@ -249,7 +249,7 @@ consensus_nestedCV <- function(train.ds = NULL,
                            #nbd.method="multisurf",
                            nbd.metric = "manhattan", msurf.sd.frac=.5, knn=my.k,
                            neighbor.sampling="none", separate.hitmiss.nbds=F,
-                           dopar.nn = T, dopar.reg=T, padj.method="bonferroni", verbose=F)
+                           dopar.nn = F, dopar.reg=F, padj.method="bonferroni", verbose=F)
 
         if(inner_selection_positivescores==T){
           ranked_vars <- npdr.predk %>% filter(pval.adj<.8) %>% pull(att)
