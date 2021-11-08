@@ -202,7 +202,7 @@ nearestNeighbors <- function(attr.mat,
         Ri <- as.character(Ri.int)
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>% # select the column Ri, hopefully reduce processing power
-          tribble::rownames_to_column() %>%
+          tibble::rownames_to_column() %>%
           #rownames2columns() %>% # push the neighbors from rownames to a column named rowname
           top_n(-(k + 1), !!sym(Ri)) %>% # select the k closest neighbors, include self
           filter((!!sym(Ri)) > 0) %>% # top_n does not sort output, so make sure remove self
@@ -220,7 +220,8 @@ nearestNeighbors <- function(attr.mat,
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
           # select the column Ri, hopefully reduce processing power
-          rownames2columns() %>%
+          tibble::rownames_to_column() %>%
+          #rownames2columns() %>%
           # push the neighbors from rownames to columns
           dplyr::top_n(-(k + 1), !!sym(Ri)) %>%
           # select the k closest neighbors, include self
@@ -262,7 +263,8 @@ nearestNeighbors <- function(attr.mat,
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
           # select the column Ri, hopefully reduce processing power
-          rownames2columns() %>%
+          tibble::rownames_to_column() %>%
+          #rownames2columns() %>%
           # push the neighbors from rownames to columns
           dplyr::filter(((!!sym(Ri)) < Ri.radius[Ri]) & ((!!sym(Ri)) > 0)) %>%
           dplyr::pull(rowname) %>%
@@ -280,7 +282,8 @@ nearestNeighbors <- function(attr.mat,
         Ri.int <- as.integer(Ri)
         Ri.nearest.idx <- dist.mat %>%
           dplyr::select(!!Ri) %>%
-          rownames2columns() %>%
+          tibble::rownames_to_column() %>%
+          #rownames2columns() %>%
           filter(((!!sym(Ri)) < Ri.radius[Ri]) & ((!!sym(Ri)) > 0)) %>%
           pull(rowname) %>%
           as.integer()
