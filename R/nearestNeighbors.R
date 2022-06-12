@@ -106,9 +106,9 @@ npdrDistances <- function(attr.mat, metric = "manhattan", fast.dist = FALSE) {
 #' Find nearest neighbors of each instance using relief.method
 #' Used for npdr (no hits or misses specified in neighbor function).
 #'
-#' @param attr.mat m x p matrix of m instances and p attributes
+#' @param attr.mat m x p matrix of m instances and p attributes. Needs to be a distance matrix instead if nbd.metric is `precomputed`.
 #' @param nbd.metric used in npdrDistances for distance matrix between instances,
-#' default to `manhattan` (numeric input).
+#' default to `manhattan` (numeric input). Argument can be `precomputed` if user-supplied distance matrix, in which case, attr.mat needs to be dist matrix
 #' @param nbd.method neighborhood method `multisurf` or `surf` (no k) or `relieff`
 #' (require k).
 #' @param sd.vec vector of standard deviations
@@ -164,25 +164,35 @@ nearestNeighbors <- function(attr.mat,
     `%dopar%` <- foreach::`%dopar%`
   }
 
-  # create a matrix with num.samp rows and two columns
-  # first column is sample Ri, second is Ri's nearest neighbors
-  num.samp <- nrow(attr.mat)
+  # Goal is to create a matrix with num.samp rows and two columns.
+  # First column is sample Ri, second is Ri's nearest neighbors (NN)
+  # this is basically an edge list.
 
-  if (!is.null(att_to_remove)) {
-    # remove attributes (possible confounders) from distance matrix calculation
-    tryCatch(
-      attr.mat <- attr.mat %>% data.frame() %>%
-        select(-att_to_remove),
-      error = function(c) "The attribute to remove does not exist."
-    )
-  }
-
-  dist.mat <- attr.mat %>%
-    as.matrix() %>%
-    unname() %>%
-    npdrDistances(metric = nbd.metric, fast.dist = fast.dist) %>%
-    as.data.frame() %>%
-    `colnames<-`(seq.int(num.samp))
+  if (nbd.metric == "precomputed"){
+    # allow user to input their own distance matrix
+    # in which case attr.mat will be a distance matrix
+    num.samp <- nrow(attr.mat)
+    dist.mat <- attr.mat %>%  as.data.frame() %>%
+      `colnames<-`(seq.int(num.samp))
+  } else{
+    # if distance is not precomputed, use a metric
+    num.samp <- nrow(attr.mat)
+    if (!is.null(att_to_remove)) {
+      # remove attributes (possible confounders)
+      #from distance matrix calculation
+      tryCatch(
+        attr.mat <- attr.mat %>% data.frame() %>%
+          select(-att_to_remove),
+        error = function(c) "The attribute to remove does not exist."
+      )
+    }
+    dist.mat <- attr.mat %>%
+      as.matrix() %>%
+      unname() %>%
+      npdrDistances(metric = nbd.metric, fast.dist = fast.dist) %>%
+      as.data.frame() %>%
+      `colnames<-`(seq.int(num.samp))
+  } # end if precomputed
 
   if (nbd.method == "relieff") {
     if (k == 0) { # if no k specified or value 0

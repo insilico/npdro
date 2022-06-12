@@ -18,13 +18,13 @@ nearestNeighbors(
 )
 }
 \arguments{
-\item{attr.mat}{m x p matrix of m instances and p attributes}
+\item{attr.mat}{m x p matrix of m instances and p attributes. Needs to be a distance matrix instead if nbd.metric is \code{precomputed}.}
 
 \item{nbd.method}{neighborhood method \code{multisurf} or \code{surf} (no k) or \code{relieff}
 (require k).}
 
 \item{nbd.metric}{used in npdrDistances for distance matrix between instances,
-default to \code{manhattan} (numeric input).}
+default to \code{manhattan} (numeric input). Argument can be \code{precomputed} if user-supplied distance matrix, in which case, attr.mat needs to be dist matrix}
 
 \item{sd.vec}{vector of standard deviations}
 
