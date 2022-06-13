@@ -26,10 +26,10 @@ npdr(
   corr.attr.names = NULL,
   fast.reg = FALSE,
   fast.dist = FALSE,
+  external.dist = NULL,
   dopar.nn = FALSE,
   dopar.reg = FALSE,
-  unique.dof = FALSE,
-  external.dist = NULL
+  unique.dof = FALSE
 )
 }
 \arguments{
@@ -77,13 +77,13 @@ The multiSURF default is msurf.sd.frac=0.5: mean - sd/2. Used by nearestNeighbor
 
 \item{fast.dist}{whether or not distance is computed by faster algorithm in wordspace, default as F}
 
+\item{external.dist}{optional input distance matrix between samples. Used in conjunction with nbd.metric = \code{"precomputed"}.}
+
 \item{dopar.nn}{logical, whether or not neighborhood is computed in parallel, default as F}
 
 \item{dopar.reg}{logical, whether or not regression is run in parallel, default as F}
 
 \item{unique.dof}{use unique neighbor pairs for degrees of freedom. FALSE lets R stats determine regression degrees of freedom}
-
-\item{external.dist}{optional input distance matrix between samples. Used in conjunction with nbd.metric = \code{"precomputed"}.}
 }
 \value{
 npdr.stats.df: npdr fdr-corrected p-value for each attribute ($pval.adj \link{1}), raw p-value ($pval.attr \link{2}), and regression coefficient (beta.attr \link{3})

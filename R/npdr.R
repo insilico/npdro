@@ -157,8 +157,9 @@ npdr <- function(outcome, dataset,
                  separate.hitmiss.nbds = FALSE,
                  corr.attr.names = NULL,
                  fast.reg = FALSE, fast.dist = FALSE,
+                 external.dist=NULL,
                  dopar.nn = FALSE, dopar.reg = FALSE,
-                 unique.dof = FALSE, external.dist=NULL) {
+                 unique.dof = FALSE) {
   ##### parse the commandline
   if (length(outcome) == 1) {
     # e.g., outcome="qtrait" or outcome=101 (pheno col index) and dataset is data.frame including outcome variable
