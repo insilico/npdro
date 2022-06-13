@@ -204,6 +204,9 @@ npdr <- function(outcome, dataset,
   }
   start_time <- Sys.time()
   if (nbd.metric == "precomputed"){
+    cat(nbd.metric)
+    cat("\n")
+    cat(dim(extenal.dist))
     if (separate.hitmiss.nbds) { # separate hit and miss neighborhoods
       neighbor.pairs.idx <- nearestNeighborsSeparateHitMiss(
                    external.dist, pheno.vec,  # pre-computed distance
