@@ -104,7 +104,7 @@ consensus_nestedCV <- function(train.ds = NULL,
     for (j in 1:length(inner_folds)){
       inner_idx <- which(outer_folds!=i)[-inner_folds[[j]]]
       if (tune.k){
-        m <- table(train.ds[inner_idx, "class"])
+        m <- table(train.ds[inner_idx, label])
         if (m[1]==m[2]){
           kmax <- floor((sum(m)-1)/2)
         } else {
@@ -235,7 +235,7 @@ consensus_nestedCV <- function(train.ds = NULL,
                                            kNearestEqual = ifelse(!is.null(tuneK), ktuned, k))
       } else if (wrapper == "npdr" && importance.algorithm == "predk"){
 
-        min.group.size <- min(as.numeric(table(train.ds[inner_idx, "class"])))
+        min.group.size <- min(as.numeric(table(train.ds[inner_idx, label])))
         #print(min.group.size)
 
         my.k <- npdr::knnSURF(2*min.group.size - 1, 0.5)
@@ -243,7 +243,7 @@ consensus_nestedCV <- function(train.ds = NULL,
         #print(my.k)
 
         # npdr - predk
-        npdr.predk <- npdr("class", train.ds[inner_idx, ], regression.type="binomial",
+        npdr.predk <- npdr(label, train.ds[inner_idx, ], regression.type="binomial",
                            attr.diff.type="numeric-abs",
                            nbd.method="relieff",
                            #nbd.method="multisurf",
@@ -262,7 +262,7 @@ consensus_nestedCV <- function(train.ds = NULL,
 
       } else if (wrapper == "npdr" && importance.algorithm == "vwok"){
 
-        min.group.size <- min(as.numeric(table(train.ds[inner_idx, "class"])))
+        min.group.size <- min(as.numeric(table(train.ds[inner_idx, label])))
 
         vwok.grid <- unique(floor(seq(knnSURF(2*min.group.size-1, 1), knnSURF(2*min.group.size - 1, 0.5), length.out=6)))
         npdr.vwok <- vwok(dats=train.ds[inner_idx, ],
@@ -270,7 +270,7 @@ consensus_nestedCV <- function(train.ds = NULL,
                           verbose=F,
                           #separate.hitmiss.nbds=T,
                           #signal.names=signal.names,
-                          label="class")
+                          label=label)
 
         if(inner_selection_positivescores==T){
           npdr.vwok.positives <- npdr.vwok$vwok.out %>% filter(pval.att<.8) %>% pull(att)
@@ -281,7 +281,7 @@ consensus_nestedCV <- function(train.ds = NULL,
 
       } else if (wrapper == "npdr" && importance.algorithm == "kpca"){
 
-        min.group.size <- min(as.numeric(table(train.ds[inner_idx, "class"])))
+        min.group.size <- min(as.numeric(table(train.ds[inner_idx, label])))
 
         vwok.grid <- unique(floor(seq(knnSURF(2*min.group.size-1, 1), knnSURF(2*min.group.size - 1, 0.5), length.out=6)))
         npdr.kpca <- kPCA(dats=train.ds[inner_idx, ],
@@ -404,7 +404,7 @@ consensus_nestedCV <- function(train.ds = NULL,
       }
       if(!is.null(covars_vec)){
         cat("Adjusting for covariates...\n")
-        train.data_fltr <- train.ds[inner_idx, c(top_vars, "class")]
+        train.data_fltr <- train.ds[inner_idx, c(top_vars, label)]
         inner_covars_vec <- covars_vec[inner_idx]
         npdr.results <- npdr('class', train.data_fltr,
                              regression.type='glm', attr.diff.type='numeric-abs',
