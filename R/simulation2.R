@@ -1,3 +1,9 @@
+# new functions for fmri sims 10/3/2022
+# updated: generate_structured_corrmat
+# new: get_int_pairs, make_case_ctrl_corrs, make_paired_corrs, make_paired_corrmats,
+# make_big_case_ctrl_mat, make_big_pre_post_mat
+# new helpers: ast_fn, get_lower_tri, get_upper_tri, make_sim_plot
+
 # Functions in simulation2.R file in order:
 # not exported: r_to_z_fn, stretch_mat
 # exported: generate_structured_corrmat, splitDataset, createMainEffects
