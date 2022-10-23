@@ -543,6 +543,8 @@ npdr <- function(outcome, dataset,
       npdrNET.coeffs <- as.matrix(predict(npdrNET.model,
                                           type = "coefficients",
                                           s=glmnet.lam))
+      cat(dim(npdrNET.coeffs),"\n")
+      cat(rownames(npdrNET.coeffs,"\n"))
       if (attr.diff.type=="correlation-data"){
         # attr.mat is ROI pair names, but the correlation metric gives importance of ROIs
         # which should be contained in corr.attr.names
