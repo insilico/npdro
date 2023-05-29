@@ -337,9 +337,10 @@ npdr <- function(outcome, dataset,
 
   if (!use.glmnet) { # combine non-glmnet result lists into a matrix
     if (dopar.reg) { # perform regressions in parallel
-      avai.cors <- parallel::detectCores() - 2
-      cl <- parallel::makeCluster(avai.cors)
-      doParallel::registerDoParallel(cl)
+      avai.cors <- parallel::detectCores() # - 2
+      #cl <- parallel::makeCluster(avai.cors)
+      #doParallel::registerDoParallel(cl)
+      doParallel::registerDoParallel(cores=avai.cors)
 
       npdr.stats.attr.mat <- foreach(
         attr.idx = seq.int(num.attr), .combine = "rbind", .packages = c("dplyr")
