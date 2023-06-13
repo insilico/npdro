@@ -23,7 +23,7 @@ get_int_pairs <- function(g, nbias, multiway, diff.cor.vars=NULL, int.partner.li
     idx.connected <- seq(1,length(kvec),by=1)
   }
 
-  mycomp <- components(g,mode="strong")
+  mycomp <- igraph::components(g,mode="strong")
   idx.max <- which.max(mycomp$csize)
 
   comp.vertices <- which(as.numeric(mycomp$membership)==idx.max)
@@ -49,7 +49,7 @@ get_int_pairs <- function(g, nbias, multiway, diff.cor.vars=NULL, int.partner.li
   }
 
   ## make make noisy covariance matrix form structure of adjacency matrix
-  Adj <- as.matrix(get.adjacency(g))
+  Adj <- as.matrix(igraph::get.adjacency(g))
 
   if(!is.null(diff.cor.vars) && is.null(int.partner.list)){
 
