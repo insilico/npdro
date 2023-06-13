@@ -294,8 +294,8 @@ make_sim_plot <- function(case.sim, ctrl.sim, n1=30, n2=30, save.plot=F){
 
   diag(Z) <- 0
 
-  melted_zmat <- melt(Z, na.rm=T)
-  melted_pvals <- melt(pvals, na.rm=T)
+  melted_zmat <- reshape2::melt(Z, na.rm=T)
+  melted_pvals <- reshape2::melt(pvals, na.rm=T)
 
   my.ast <- character()
   for(i in 1:length(melted_pvals[,"value"])){
@@ -310,17 +310,17 @@ make_sim_plot <- function(case.sim, ctrl.sim, n1=30, n2=30, save.plot=F){
   upper_tri_zmat <- get_upper_tri(Z)
 
   # Melt the correlation matrix
-  melted_zmat <- melt(upper_tri_zmat, na.rm = TRUE)
+  melted_zmat <- reshape2::melt(upper_tri_zmat, na.rm = TRUE)
 
   upper_tri_pmat <- get_upper_tri(pvals)
-  melted_pvals <- melt(upper_tri_pmat, na.rm = TRUE)
+  melted_pvals <- reshape2::melt(upper_tri_pmat, na.rm = TRUE)
 
   amat <- case.sim$A.mat
   colnames(amat) <- colnames(Z)
   row.names(amat) <- colnames(Z)
 
   upper_tri_amat <- get_upper_tri(amat)
-  melted_amat <- melt(upper_tri_amat, na.rm = TRUE)
+  melted_amat <- reshape2::melt(upper_tri_amat, na.rm = TRUE)
 
   my.ast <- character()
   for(i in 1:length(melted_pvals[,"value"])){
@@ -700,7 +700,7 @@ make_big_case_ctrl_mat <- function(case.list, ctrl.list,
     if (rm.lower.tri){
       case.mat.tmp[lower.tri(case.mat.tmp)] <- NA
     }
-    melted.case.mat <- melt(case.mat.tmp, na.rm=T)
+    melted.case.mat <- reshape2::melt(case.mat.tmp, na.rm=T)
 
     case.names[i] <- paste("sub",sub.count, "_case",sep="")
     class.vec[i] <- 1  # controls are already 0's
@@ -725,7 +725,7 @@ make_big_case_ctrl_mat <- function(case.list, ctrl.list,
     if (rm.lower.tri){
       ctrl.mat.tmp[lower.tri(ctrl.mat.tmp)] <- NA
     }
-    melted.ctrl.mat <- melt(ctrl.mat.tmp, na.rm=T)
+    melted.ctrl.mat <- reshape2::melt(ctrl.mat.tmp, na.rm=T)
 
     ctrl.names[i] <- paste("sub",sub.count, "_ctrl",sep="")
     sub.count <- sub.count + 1
@@ -791,7 +791,7 @@ make_big_pre_post_mat <- function(pre.list, post.list,
     if (rm.lower.tri){
       pre.mat.tmp[lower.tri(pre.mat.tmp)] <- NA
     }
-    melted.pre.mat <- melt(pre.mat.tmp, na.rm=T)
+    melted.pre.mat <- reshape2::melt(pre.mat.tmp, na.rm=T)
 
     if(i == 1){
       corr.pair.names <- apply(melted.pre.mat[,c("Var1","Var2")], 1, function(x)paste("ROI", x[1], ".", "ROI", x[2], sep=""))
@@ -811,7 +811,7 @@ make_big_pre_post_mat <- function(pre.list, post.list,
     if (rm.lower.tri){
       post.mat.tmp[lower.tri(post.mat.tmp)] <- NA
     }
-    melted.post.mat <- melt(post.mat.tmp, na.rm=T)
+    melted.post.mat <- reshape2::melt(post.mat.tmp, na.rm=T)
 
     big.post.mat <- cbind(big.post.mat, melted.post.mat[,"value"])
 
