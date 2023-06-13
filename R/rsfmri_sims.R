@@ -11,7 +11,7 @@
 
 get_int_pairs <- function(g, nbias, multiway, diff.cor.vars=NULL, int.partner.list=NULL){
 
-  kvec <- degree(g)
+  kvec <- igraph::degree(g)
 
   # which variables are not connected in network
   idx.not.connected <- which(kvec == 0)
