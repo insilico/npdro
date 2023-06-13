@@ -90,7 +90,7 @@ get_int_pairs <- function(g, nbias, multiway, diff.cor.vars=NULL, int.partner.li
 # use.Rcpp         - (logical) ideally this will speed up eigendecomposition, but it actually seems to be slower
 # multiway         - (numeric) controls how many pairwise correlations will be different between groups
 ################################################################################################
-generate_structured_corrmat <- function(g=NULL,
+generate_structured_corrmat2 <- function(g=NULL,
                                         num.variables=100,
                                         hi.cor.tmp=0.8,
                                         lo.cor.tmp=0.2,
@@ -109,7 +109,7 @@ generate_structured_corrmat <- function(g=NULL,
   }')
   }
   if(abs(as.integer(num.variables) - num.variables) > 1e-9){
-    stop("generate_structured_corrmat: num.variables should be a positive integer")
+    stop("generate_structured_corrmat2: num.variables should be a positive integer")
   }
 
   if(is.null(corr.structure)){
@@ -460,7 +460,7 @@ make_case_ctrl_corrs <- function(user.adjacency=NULL,      # user-supplied binar
 
   }else if(!is.null(user.graph)){
 
-    g <- graph_from_adjacency_matrix(as.matrix(user.adjacency),
+    g <- igraph::graph_from_adjacency_matrix(as.matrix(user.adjacency),
                                      mode = "undirected",
                                      weighted = NULL,
                                      diag = TRUE,
@@ -477,7 +477,7 @@ make_case_ctrl_corrs <- function(user.adjacency=NULL,      # user-supplied binar
   for(i in 1:num.case.mats){
 
     # case correlation matrix
-    case.sub <- generate_structured_corrmat(g=g,
+    case.sub <- generate_structured_corrmat2(g=g,
                                             num.variables=num.variables,
                                             hi.cor.tmp=lo.cor,
                                             lo.cor.tmp=0.2,
@@ -497,7 +497,7 @@ make_case_ctrl_corrs <- function(user.adjacency=NULL,      # user-supplied binar
   for(i in 1:num.ctrl.mats){
 
     # control correlation matrix
-    ctrl.sub <- generate_structured_corrmat(g=g,
+    ctrl.sub <- generate_structured_corrmat2(g=g,
                                             num.variables=num.variables,
                                             hi.cor.tmp=hi.cor,
                                             lo.cor.tmp=0.2,
@@ -638,7 +638,7 @@ make_paired_corrmats <- function(user.adjacency=NULL,      # user-supplied binar
   for(i in 1:num.paired.mats){
 
     # baseline correlation matrix
-    base.sub <- generate_structured_corrmat(g=g,
+    base.sub <- generate_structured_corrmat2(g=g,
                                             num.variables=num.variables,
                                             hi.cor.tmp=lo.cor,
                                             lo.cor.tmp=0.2,
